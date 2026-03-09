@@ -5,15 +5,16 @@ const TAMANHO_CPF_SEM_DV: usize = 9;
 
 pub fn is_valido(documento: String) -> bool {
 	let regex_formatacao = Regex::new("[./-]").unwrap();
-	let replacement = |caps: &Captures| -> Result<String, &'static str> {
-		if caps[0].len() >= 5 {
-			return Err("word too long");
-		}
+	let replacement = |_caps: &Captures| -> Result<String, &'static str> {
 		Ok(String::new())
 	};
 	let doc_formatado = replace(&regex_formatacao, &documento[..], replacement).unwrap();
 	let regex_cnpj = Regex::new("[A-Z\\d]{12}").unwrap();
 	let regex_cpf = Regex::new("[0-9]{9}").unwrap();
+	let regex_valor_zerado = Regex::new("^(\\d)*$").unwrap();
+	if regex_valor_zerado.is_match(&doc_formatado) {
+		return false;
+	}
 	if regex_cnpj.is_match(&doc_formatado) {
 		let mut doc_sem_dv = &doc_formatado[0..TAMANHO_CNPJ_SEM_DV];
 		let dv_informado = &doc_formatado[TAMANHO_CNPJ_SEM_DV..];
