@@ -37,19 +37,16 @@ pub fn is_valido(documento: String) -> bool {
 	false
 }
 
-
-fn calcula_digito_cnpj(cnpj: &str) -> u32 {
-	let pesos_cnpj: Vec<u32> = Vec::from([6,5,4,3,2,9,8,7,6,5,4,3,2]);
-	let mut soma: u32 = 0;
-	let mut ind = cnpj.len() - 1;
-	loop {
-		let ind_peso: usize = pesos_cnpj.len() - cnpj.len() + ind;
-		soma += cnpj[ind..ind+1].trim().parse::<u32>().unwrap() * pesos_cnpj[ind_peso];
-		if ind == 0 {
-			break;
-		}
-		ind -= 1;
- 	}
+fn calcula_digito_cpf(cpf: &str) -> u32 {
+	let pesos_cpf: Vec<u32> = Vec::from([11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
+	let soma: u32 = cpf.as_bytes()
+		.iter()
+		.rev()
+		.zip(pesos_cpf.iter())
+		.map(|(&num_byte, &peso)| {
+			(num_byte - b'0') as u32 * peso
+		})
+		.sum();
 	if (soma % 11) < 2 {
 		0
 	} else {
@@ -57,19 +54,16 @@ fn calcula_digito_cnpj(cnpj: &str) -> u32 {
 	}
 }
 
-fn calcula_digito_cpf(cpf: &str) -> u32 {
-	let pesos_cpf: Vec<u32> = Vec::from([11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
-	let mut soma: u32 = 0;
-	let mut ind = cpf.len() - 1;
-	loop {
-		let ind_peso: usize = pesos_cpf.len() - cpf.len() + ind;
-		soma += cpf[ind..ind+1].trim().parse::<u32>().unwrap() * pesos_cpf[ind_peso];	
-		if ind == 0 {
-			break;
-		}
-		ind -= 1;
-	}
-
+fn calcula_digito_cnpj(cnpj: &str) -> u32 {
+	let pesos_cnpj: Vec<u32> = Vec::from([6,5,4,3,2,9,8,7,6,5,4,3,2]);
+	let soma: u32 = cnpj.as_bytes()
+		.iter()
+		.rev()
+		.zip(pesos_cnpj.iter())
+		.map(|(&num_byte, &peso)| {
+			(num_byte - b'0') as u32 * peso
+		})
+		.sum();
 	if (soma % 11) < 2 {
 		0
 	} else {
