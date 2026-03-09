@@ -1,0 +1,10 @@
+[package]
+name = "valida_cpf_cnpj"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+regex = "1.12.3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
