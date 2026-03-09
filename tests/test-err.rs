@@ -14,8 +14,10 @@ fn teste_err(){
 
 #[test]
 fn teste_ok(){
-	let cpf_certo = String::from("113.745.449-06");
-	assert!(!is_valido(cpf_certo));
-	let cnpj_certo = String::from("08.829.865/0001-77");
-	assert!(!is_valido(cnpj_certo));
+	let cpf_certo = String::from("858.505.450-69");
+	assert!(is_valido(cpf_certo));
+	let cnpj_certo = String::from("74.357.176/0001-31");
+	assert!(is_valido(cnpj_certo));
+	let cnpj_alfa = String::from("B2.HTH.HYX/0001-96");
+	assert!(is_valido(cnpj_alfa));
 }

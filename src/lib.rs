@@ -11,8 +11,7 @@ pub fn is_valido(documento: String) -> bool {
 	let doc_formatado = replace(&regex_formatacao, &documento[..], replacement).unwrap();
 	let regex_cnpj = Regex::new("[A-Z\\d]{12}").unwrap();
 	let regex_cpf = Regex::new("[0-9]{9}").unwrap();
-	let regex_valor_zerado = Regex::new("^(\\d)*$").unwrap();
-	if regex_valor_zerado.is_match(&doc_formatado) {
+	if is_digito_repetido(&doc_formatado) {
 		return false;
 	}
 	if regex_cnpj.is_match(&doc_formatado) {
@@ -42,7 +41,7 @@ fn calcula_digito_cpf(cpf: &str) -> u32 {
 	let soma: u32 = cpf.as_bytes()
 		.iter()
 		.rev()
-		.zip(pesos_cpf.iter())
+		.zip(pesos_cpf.iter().rev())
 		.map(|(&num_byte, &peso)| {
 			(num_byte - b'0') as u32 * peso
 		})
@@ -59,7 +58,7 @@ fn calcula_digito_cnpj(cnpj: &str) -> u32 {
 	let soma: u32 = cnpj.as_bytes()
 		.iter()
 		.rev()
-		.zip(pesos_cnpj.iter())
+		.zip(pesos_cnpj.iter().rev())
 		.map(|(&num_byte, &peso)| {
 			(num_byte - b'0') as u32 * peso
 		})
@@ -82,4 +81,12 @@ fn replace<E>(r: &Regex, stack: &str, replace: impl Fn(&Captures) -> Result<Stri
 	}
 	new.push_str(&stack[last_match..]);
 	Ok(new)
+}
+
+fn is_digito_repetido(doc: &str) -> bool {
+	let p_char = doc.chars().next().unwrap();
+	if p_char.is_ascii_digit() && doc.chars().all(|c| c == p_char) {
+		return true;
+	}
+	false
 }
