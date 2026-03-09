@@ -2,6 +2,8 @@ use regex::{Captures, Regex};
 
 const TAMANHO_CNPJ_SEM_DV: usize = 12;
 const TAMANHO_CPF_SEM_DV: usize = 9;
+const PESOS_CPF: [u32; 10] = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+const PESOS_CNPJ: [u32; 13] = [6,5,4,3,2,9,8,7,6,5,4,3,2];
 
 pub fn is_valido(documento: String) -> bool {
 	let regex_formatacao = Regex::new("[./-]").unwrap();
@@ -14,53 +16,37 @@ pub fn is_valido(documento: String) -> bool {
 	if is_digito_repetido(&doc_formatado) {
 		return false;
 	}
+	let mut doc_sem_dv: &str;
+	let dv_informado: &str;
+	let mut dv_calculado: String;
 	if regex_cnpj.is_match(&doc_formatado) {
-		let mut doc_sem_dv = &doc_formatado[0..TAMANHO_CNPJ_SEM_DV];
-		let dv_informado = &doc_formatado[TAMANHO_CNPJ_SEM_DV..];
-		let mut dv_calculado = format!("{}", calcula_digito_cnpj(doc_sem_dv));
+		doc_sem_dv = &doc_formatado[0..TAMANHO_CNPJ_SEM_DV];
+		dv_informado = &doc_formatado[TAMANHO_CNPJ_SEM_DV..];
+		dv_calculado = format!("{}", calcula_digito(doc_sem_dv));
 		let ctrl = format!("{}{}", doc_sem_dv, dv_calculado);
 		doc_sem_dv = ctrl.as_str();
-		dv_calculado = format!("{}{}", dv_calculado, calcula_digito_cnpj(doc_sem_dv));
-		debug_assert!(dv_calculado == dv_informado);
-		return dv_calculado == dv_informado;
+		dv_calculado = format!("{}{}", dv_calculado, calcula_digito(doc_sem_dv));
 	} else if regex_cpf.is_match(&doc_formatado){
-		let mut doc_sem_dv = &doc_formatado[0..TAMANHO_CPF_SEM_DV];
-		let dv_informado = &doc_formatado[TAMANHO_CPF_SEM_DV..];
-		let mut dv_calculado = format!("{}", calcula_digito_cpf(doc_sem_dv));
+		doc_sem_dv = &doc_formatado[0..TAMANHO_CPF_SEM_DV];
+		dv_informado = &doc_formatado[TAMANHO_CPF_SEM_DV..];
+		dv_calculado = format!("{}", calcula_digito(doc_sem_dv));
 		let ctrl = format!("{}{}", doc_sem_dv, dv_calculado);
 		doc_sem_dv = ctrl.as_str();
-		dv_calculado = format!("{}{}", dv_calculado, calcula_digito_cpf(doc_sem_dv));
-		debug_assert!(dv_calculado == dv_informado);
-		return dv_calculado == dv_informado;
-	}
-	false
-}
-
-fn calcula_digito_cpf(cpf: &str) -> u32 {
-	let pesos_cpf: Vec<u32> = Vec::from([11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
-	let soma: u32 = cpf.as_bytes()
-		.iter()
-		.rev()
-		.zip(pesos_cpf.iter().rev())
-		.map(|(&num_byte, &peso)| {
-			(num_byte - b'0') as u32 * peso
-		})
-		.sum();
-	if (soma % 11) < 2 {
-		0
+		dv_calculado = format!("{}{}", dv_calculado, calcula_digito(doc_sem_dv));
 	} else {
-		11 - (soma % 11)
+		return false;
 	}
+	debug_assert!(dv_calculado == dv_informado);
+	dv_calculado == dv_informado
 }
 
-fn calcula_digito_cnpj(cnpj: &str) -> u32 {
-	let pesos_cnpj: Vec<u32> = Vec::from([6,5,4,3,2,9,8,7,6,5,4,3,2]);
-	let soma: u32 = cnpj.as_bytes()
+fn calcula_digito(doc: &str) -> u32 {
+	let soma: u32 = doc.as_bytes()
 		.iter()
 		.rev()
-		.zip(pesos_cnpj.iter().rev())
-		.map(|(&num_byte, &peso)| {
-			(num_byte - b'0') as u32 * peso
+		.zip(if doc.len() <= 10 {PESOS_CPF.iter().rev()} else {PESOS_CNPJ.iter().rev()})
+		.map(|(&byte, &peso)| {
+			(byte - b'0') as u32 * peso
 		})
 		.sum();
 	if (soma % 11) < 2 {
@@ -85,8 +71,5 @@ fn replace<E>(r: &Regex, stack: &str, replace: impl Fn(&Captures) -> Result<Stri
 
 fn is_digito_repetido(doc: &str) -> bool {
 	let p_char = doc.chars().next().unwrap();
-	if p_char.is_ascii_digit() && doc.chars().all(|c| c == p_char) {
-		return true;
-	}
-	false
+	p_char.is_ascii_digit() && doc.chars().all(|c| c == p_char)
 }
