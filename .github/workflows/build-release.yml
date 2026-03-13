@@ -21,6 +21,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ github.ref_name }}
-          files: target/release/libvalida-cpf_cnpj.*
+          files: target/release/libvalida_cpf_cnpj.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
