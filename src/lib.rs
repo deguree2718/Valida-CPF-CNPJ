@@ -1,4 +1,4 @@
-use regex::{Captures, Regex};
+use regex::Regex;
 
 const TAMANHO_CNPJ_SEM_DV: usize = 12;
 const TAMANHO_CPF_SEM_DV: usize = 9;
@@ -7,10 +7,7 @@ const PESOS_CNPJ: [u32; 13] = [6,5,4,3,2,9,8,7,6,5,4,3,2];
 
 pub fn is_valido(documento: String) -> bool {
 	let regex_formatacao = Regex::new("[./-]").unwrap();
-	let replacement = |_caps: &Captures| -> Result<String, &'static str> {
-		Ok(String::new())
-	};
-	let doc_formatado = replace(&regex_formatacao, &documento[..], replacement).unwrap();
+	let doc_formatado = remover_ocorrencias(&regex_formatacao, &documento[..]);
 	let regex_cnpj = Regex::new("[A-Z\\d]{12}").unwrap();
 	let regex_cpf = Regex::new("[0-9]{9}").unwrap();
 	if is_digito_repetido(&doc_formatado) {
@@ -56,17 +53,16 @@ fn calcula_digito(doc: &str) -> u32 {
 	}
 }
 
-fn replace<E>(r: &Regex, stack: &str, replace: impl Fn(&Captures) -> Result<String, E>,) -> Result<String, E> {
-	let mut new = String::with_capacity(stack.len());
+fn remover_ocorrencias(r: &Regex, stack: &str) -> String {
+	let mut n = String::with_capacity(stack.len());
 	let mut last_match = 0;
 	for caps in r.captures_iter(stack) {
 		let m = caps.get(0).unwrap();
-		new.push_str(&stack[last_match..m.start()]);
-		new.push_str(&replace(&caps)?);
+		n.push_str(&stack[last_match..m.start()]);
 		last_match = m.end();
 	}
-	new.push_str(&stack[last_match..]);
-	Ok(new)
+	n.push_str(&stack[last_match..]);
+	n
 }
 
 fn is_digito_repetido(doc: &str) -> bool {
